@@ -3,12 +3,17 @@ import matplotlib.pylab as plt
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
 import os
- 
+import sys
+
+
 class screenSegmentation():
- 
+
     def __init__(self):
-        self.topleft = np.load(os.getcwd() + '\\topleftcorner.npy' )
-        self.bottomright = np.load(os.getcwd() + '\\bottomright.npy' )
+        path, _ = os.path.split(os.path.abspath(sys.modules[screenSegmentation.__module__].__file__))
+
+        self.topleft = np.load(path + '\\topleftcorner.npy' )
+        self.bottomright = np.load(path + '\\bottomright.npy' )
+
         I = self.screenGrab()
         
         conv = self.ssd(I.astype(float), self.topleft.astype(float))
@@ -26,8 +31,7 @@ class screenSegmentation():
             self.ex = np.unravel_index(np.argmin(conv),conv.shape)[1]
         else:
             raise Exception('Tetris not found')
-            
-        
+
     def getGame(self):
         I = self.screenGrab()
         return self.section(self.ox, self.oy, self.ex, self.ey, I)
