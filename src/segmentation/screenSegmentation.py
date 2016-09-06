@@ -67,12 +67,15 @@ class screenSegmentation():
         ssd += np.einsum('ij, ij', template, template)
     
         return ssd
+        
+    def getGameOrigin(self):
+        return self.ox, self.oy
 
     
 def main():
     segmentation = screenSegmentation()
     game, playfield, holdfield, nextfield, scorefield = segmentation.getCurrentState()
-    plt.imshow(playfield, cmap='Greys_r')
+    plt.imshow(game, cmap='Greys_r')
     plt.show()
 
  
