@@ -78,6 +78,7 @@ def main():
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
 
 
     # Black removed and is used for noise instead.
