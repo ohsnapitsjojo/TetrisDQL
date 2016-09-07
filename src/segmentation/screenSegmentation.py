@@ -1,10 +1,9 @@
-from PIL import ImageGrab
 import matplotlib.pylab as plt
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
 import os
 import sys
-
+from PIL import ImageGrab
 
 class screenSegmentation():
 
