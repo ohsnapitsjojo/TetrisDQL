@@ -56,7 +56,7 @@ class Preprocessor():
         image = np.hstack((hF, zeros((3, 1))))
         image = np.vstack((image, zeros((9,5))))
         image = np.vstack((image, nF ))
-        image = np.hstack((zeros((20,1)), image))
+        image = np.hstack((zeros((20,5)), image))
         image = np.hstack((pF, image))
 
         return image
