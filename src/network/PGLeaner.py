@@ -80,6 +80,8 @@ class PGLearner:
                 x_n.append(x)
                 r_n.append(score-old_score)
                 a_n.append(action)
+                
+                old_score = score
             
                 if self.agent.pP.tryAgain() or self.agent.pP.highScore():
                     
