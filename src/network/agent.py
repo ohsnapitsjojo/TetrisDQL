@@ -3,11 +3,10 @@ sys.path.append("..\preprocessing")
 sys.path.append("..\inputSimulator")
 
 import time
-
+from random import randint
 import numpy as np
 import theano
 import theano.tensor as T
-import matplotlib.pyplot as plt
 
 import lasagne
 
@@ -34,7 +33,7 @@ class Agent:
         self.pred_fn = theano.function([self.input_var], self.prediction)
         print("Compiling done")
         
-    def performAction(self, probabilities):
+    def performAction(self, probabilities, random):
         # 0: None
         # 1: Up
         # 2: Left
@@ -42,10 +41,15 @@ class Agent:
         # 4: Down
         # 5: Space
         # 6: Hold
+        action = -1
+        if random:
+            probabilities = np.asarray(probabilities)
+            csprob_n = np.cumsum(probabilities)
+            action = (csprob_n > np.random.rand()).argmax()
+        else:
+            action = np.argmax(probabilities)
         
-        action = np.argmax(probabilities)
-        
-        print 'Probabilities: ', probabilities
+        #print 'Probabilities: ', probabilities
         if action == 0:
             print("No action.")
         elif action == 1:
@@ -81,12 +85,13 @@ class Agent:
         self.updateInput()
         for i in range(200):
             self.updateInput()
-            self.performAction(self.pred_fn(self.x))   
+            self.performAction(self.pred_fn(self.x), False)   
             
     def oneAction(self):
         self.updateInput()
-        action = self.performAction(self.pred_fn(self.x))
-        return action
+        probabilities = self.pred_fn(self.x)
+        action = self.performAction(probabilities, True)
+        return self.x, action 
             
     def loadParams(self):
         print("Loading paramters...")

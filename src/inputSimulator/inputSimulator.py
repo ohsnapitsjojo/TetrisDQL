@@ -59,6 +59,20 @@ class InputSimulator():
         win32api.keybd_event(67, 0)
         time.sleep(.05)
         win32api.keybd_event(67, 0, win32con.KEYEVENTF_KEYUP, 0)
+        
+    def retry(self):
+        self.space()
+        
+    def enterInitials(self):
+        win32api.keybd_event(68, 0)
+        time.sleep(.05)
+        win32api.keybd_event(68, 0, win32con.KEYEVENTF_KEYUP, 0)
+        win32api.keybd_event(76, 0)
+        time.sleep(.05)
+        win32api.keybd_event(76, 0, win32con.KEYEVENTF_KEYUP, 0)
+        self.mousePos(403,409)
+        self.leftClick()
+        self.mousePos(600,400)
 
 def main():
     iS = InputSimulator()
