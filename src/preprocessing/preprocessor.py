@@ -52,10 +52,10 @@ class Preprocessor():
         nF = self.preprocessNextField()
         hF = self.preprocessHoldField()
 
-        image = np.hstack((hF, zeros((3, 1))))
-        image = np.vstack((image, zeros((9,5))))
+        image = np.hstack((hF, np.zeros((3, 1))))
+        image = np.vstack((image, np.zeros((9,5))))
         image = np.vstack((image, nF ))
-        image = np.hstack((zeros((20,5)), image))
+        image = np.hstack((np.zeros((20,5)), image))
         image = np.hstack((pF, image))
 
         return image
@@ -109,8 +109,24 @@ class Preprocessor():
             self.update()
             nScore = self.getScore()
             if oScore != nScore:
-                print nScore
+                #print nScore
+                pass
             oScore = nScore
+            
+    def isMenuOpen(self):
+        if self.game[40,40] != 224:
+            return True
+        else:
+            return False
+    
+    def tryAgain(self):
+        if self.game[418,470] == 89:
+            return True
+        else:
+            return False
+    
+    def highScore():
+        pass
             
 def dbscan(points, plot=False):
     if not points:
@@ -168,7 +184,7 @@ def dbscan(points, plot=False):
     sortIdx = np.argsort(center)
     
     scoreNPoints = [scoreNPoints[sortIdx[i]] for i in range(n_clusters_)]
-    print scoreNPoints
+    #print scoreNPoints
     return labels, n_clusters_, scoreNPoints
     
 def main():
@@ -179,6 +195,7 @@ def main():
     #p = Preprocessor()
     #print p.getScore()
     #plt.imshow(score, interpolation='none',cmap='Greys_r')
+    pass
     
 #if __name__ == '__main__':
 #   main()

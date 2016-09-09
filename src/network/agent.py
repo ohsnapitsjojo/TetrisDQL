@@ -21,7 +21,7 @@ class Agent:
         self.iS = inputSimulator
         self.pP = preprocessor
         self.input_var = T.tensor4('input')
-        self.network = build_network(7, self.input_var, (20,20))
+        self.network = build_network(6, self.input_var, (20,20))
         
         self.prediction = lasagne.layers.get_output(self.network, deterministic=True)
         self.x = np.zeros((1,4,20,20),np.int8)
@@ -50,25 +50,26 @@ class Agent:
             action = np.argmax(probabilities)
         
         #print 'Probabilities: ', probabilities
-        if action == 0:
-            print("No action.")
-        elif action == 1:
-            print("Up.")
+        if action == 6:
+            #print("No action.")
+            pass
+        elif action == 0:
+            #print("Up.")
             self.iS.up()
-        elif action == 2:
-            print("Left")
+        elif action == 1:
+            #print("Left")
             self.iS.left()
-        elif action == 3:
-            print("Right")
+        elif action == 2:
+            #print("Right")
             self.iS.right()
-        elif action == 4:
-            print("Down")
+        elif action == 3:
+            #print("Down")
             self.iS.down()
-        elif action == 5:
-            print("Space")
+        elif action == 4:
+            #print("Space")
             self.iS.space()
-        elif action == 6:
-            print("Hold")
+        elif action == 5:
+            #print("Hold")
             self.iS.c()
             
         return action
@@ -80,6 +81,8 @@ class Agent:
         self.pP.update()
         self.x[0,0,:,:] = self.pP.preprocess()
         
+    def resetInput(self):
+        self.x = np.zeros((1,4,20,20),np.int8)
         
     def play(self):
         self.updateInput()

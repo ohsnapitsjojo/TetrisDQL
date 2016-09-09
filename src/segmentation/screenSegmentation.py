@@ -73,8 +73,8 @@ class screenSegmentation():
     
 def main():
     segmentation = screenSegmentation()
-    game, playfield, holdfield, nextfield, scorefield = segmentation.getCurrentState()
-    plt.imshow(game, cmap='Greys_r')
+    game, playfield, holdfield, nextfield, scorefield = segmentation.getCurrentState()  
+    plt.imshow(holdfield, cmap='Greys_r')
     plt.show()
 
  

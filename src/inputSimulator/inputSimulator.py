@@ -23,11 +23,13 @@ class InputSimulator():
     def clickPlay(self):
         self.mousePos(410,252)
         self.leftClick()
+        self.space()
         self.mousePos(600,400)
         
     def clickTryAgain(self):
         self.mousePos(460,412)
         self.leftClick()
+        self.space()
         self.mousePos(600,400)
         
     def space(self):

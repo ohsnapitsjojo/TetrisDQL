@@ -10,7 +10,6 @@ import theano.tensor as T
 
 import lasagne
 
-from network import build_network
 from preprocessor import Preprocessor
 from inputSimulator import InputSimulator
 from agent import Agent
@@ -26,7 +25,7 @@ class PGLearner:
         self.iS = InputSimulator()
         self.pP = Preprocessor()
     
-        self.agent = Agent(self.iS, self.pP, True)
+        self.agent = Agent(self.iS, self.pP, False)
         
         input_var = self.agent.input_var
 
@@ -48,20 +47,11 @@ class PGLearner:
         self.prediction_fn = self.agent.pred_fn
         
         print("Compiling Training Function...")
-        self.train_fn = theano.function([input_var, a_n, r_n], loss, updates=updates)
+        self.train_fn = theano.function([input_var, a_n, r_n],
+                                        [], 
+                                        updates=updates,
+                                        allow_input_downcast=True)
         print("Compiling Done!")
-        
-    def discount_rewards(self, r):
-        discounted_r = np.zeros_like(r)
-        running_add = 0.0
-        for t in reversed(xrange(0, r.size)):
-            running_add = running_add * self.gamma + r[t]
-            discounted_r[t] = running_add
-            
-        #normalize
-        discounted_r -= np.mean(discounted_r)
-        discounted_r /= np.std(discounted_r)
-        return discounted_r
         
     def train(self, epochs, batch_size):
         print("Start Training the PGLearner.")
@@ -76,14 +66,18 @@ class PGLearner:
                 x, action = self.agent.oneAction()
                 self.agent.updateInput()
                 score = self.agent.pP.getScore()
+                
+                if score == -1:
+                    r_n.append(0)
+                else:
+                    r_n.append((score-old_score)/100)
             
                 x_n.append(x)
-                r_n.append(score-old_score)
                 a_n.append(action)
                 
                 old_score = score
             
-                if self.agent.pP.tryAgain() or self.agent.pP.highScore():
+                if self.agent.pP.isMenuOpen():
                     
                     x_s = np.vstack(x_n)
                     r_s = np.vstack(r_n)
@@ -91,34 +85,60 @@ class PGLearner:
                     
                     x_n, r_n, a_n = [],[],[]
                     r_s[-1] = 0
+                    r_sum = np.sum(r_s)
                     rd_s = self.discount_rewards(r_s)
-                    
+
+                    a_s = a_s.reshape(a_s.shape[0],)
+                    rd_s = rd_s.reshape(rd_s.shape[0],)
                     self.train_fn(x_s,a_s,rd_s)
                     
-                    print("Game {} of {} took {:.3f}s".format(
-                    episode + 1, epochs, time.time() - start_time))
+                    t = time.time() - start_time
+                    print("Game {} of {} took {:.3f}s and reached a Score of {}".format(
+                    episode + 1, epochs, t, r_sum))
+                    
+                    self.agent.resetInput()
+                    #self.log(t, r_sum)
+                    
+                    time.sleep(2)
                     
                     if self.agent.pP.tryAgain():
                         self.iS.clickTryAgain()
                         time.sleep(3.5)
                         self.agent.updateInput()
                         break
-                    elif self.agent.pP.highScore():
+                    else:
                         self.iS.enterInitials()
                         time.sleep(1.0)
                         self.iS.clickTryAgain()
                         time.sleep(3.5)
                         self.agent.updateInput()
                         break
+                    
+        print("Saving Model to File...")
+        self.agent.saveParams('trained_model.npz')
+        print("End Training Program!")
             
+    def discount_rewards(self, r):
+        discounted_r = np.zeros_like(r)
+        running_add = 0.0
+        for t in reversed(xrange(0, r.size)):
+            running_add = running_add * self.gamma + r[t]
+            discounted_r[t] = running_add
             
-            
-            
+        #normalize
+        discounted_r -= np.mean(discounted_r)
+        discounted_r /= np.std(discounted_r)
+        return discounted_r
+        
+    def log(self, time, reward):
+        with open("log_file.txt", "a") as myfile:
+            myfile.writelines(str(time) + ', ' + str(reward) )
             
             
 def main():
-    PGL = PGLearner(0.9, 0.0005, 0.9, 1e-6)
-    PGL.train(800)
+    PGL = PGLearner(0.9, 0.0001, 0.9, 1e-6)
+    PGL.train(5,5)
+    
 if __name__ == '__main__':
     main()
         
