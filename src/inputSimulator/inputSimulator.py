@@ -74,11 +74,13 @@ class InputSimulator():
         win32api.keybd_event(76, 0, win32con.KEYEVENTF_KEYUP, 0)
         self.mousePos(403,409)
         self.leftClick()
+        self.space()
         self.mousePos(600,400)
 
 def main():
     iS = InputSimulator()
-    iS.clickPlay()
+    time.sleep(100)
+    iS.enterInitials()
 
 if __name__ == '__main__':
     main()
