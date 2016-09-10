@@ -16,7 +16,7 @@ from agent import Agent
 
 class PGLearner:
     
-    def __init__(self, gamma, learning_rate, rho, epsilon, load_network):
+    def __init__(self, gamma, learning_rate, rho, epsilon):
         self.gamma = gamma
         self.learning_rate = learning_rate
         self.rho = rho
@@ -25,7 +25,7 @@ class PGLearner:
         self.iS = InputSimulator()
         self.pP = Preprocessor()
     
-        self.agent = Agent(self.iS, self.pP, load_network)
+        self.agent = Agent(self.iS, self.pP, False)
         
         input_var = self.agent.input_var
 
@@ -35,7 +35,7 @@ class PGLearner:
         N = input_var.shape[0]
         
         prediction = self.agent.prediction
-        loss = -T.log(prediction[T.arange(N), a_n]).dot(r_n) / N
+        loss = T.log(prediction[T.arange(N), a_n]).dot(r_n) / N
         
         params = lasagne.layers.get_all_params(self.agent.network, 
                                                     trainable=True)
@@ -84,31 +84,20 @@ class PGLearner:
                     a_s = np.vstack(a_n)
                     
                     x_n, r_n, a_n = [],[],[]
-                    r_s[-1] = -4
+                    r_s[-1] = 0
                     r_sum = np.sum(r_s)
                     rd_s = self.discount_rewards(r_s)
 
                     a_s = a_s.reshape(a_s.shape[0],)
                     rd_s = rd_s.reshape(rd_s.shape[0],)
-                    
-                    shuf = np.arange(x_s.shape[0])
-                    np.random.shuffle(shuf)
-                    print np.floor_divide(x_s.shape[0], batch_size)
-                    for k in range(np.floor_divide(x_s.shape[0], batch_size)):
-                        it1 = k*batch_size
-                        it2 = (k+1)*batch_size
-                        print k
-                        print a_s[it1:it2]
-                        print rd_s[it1:it2]
-                        self.train_fn(x_s[shuf[it1:it2],:,:,:],
-                                      a_s[it1:it2],rd_s[it1:it2])
+                    self.train_fn(x_s,a_s,rd_s)
                     
                     t = time.time() - start_time
                     print("Game {} of {} took {:.3f}s and reached a Score of {}".format(
                     episode + 1, epochs, t, r_sum))
                     
                     self.agent.resetInput()
-                    self.log(t, r_sum)
+                    #self.log(t, r_sum)
                     
                     time.sleep(2)
                     
@@ -126,7 +115,7 @@ class PGLearner:
                         break
                     
         print("Saving Model to File...")
-        self.agent.saveParams('trained_model1.npz')
+        self.agent.saveParams('trained_model.npz')
         print("End Training Program!")
             
     def discount_rewards(self, r):
@@ -143,11 +132,11 @@ class PGLearner:
         
     def log(self, time, reward):
         with open("log_file.txt", "a") as myfile:
-            myfile.writelines(str(time) + ', ' + str(reward) + '\n')
+            myfile.writelines(str(time) + ', ' + str(reward) )
             
             
 def main():
-    PGL = PGLearner(0.9, 0.0001, 0.9, 1e-6, False)
+    PGL = PGLearner(0.9, 0.0001, 0.9, 1e-6)
     PGL.train(5,5)
     
 if __name__ == '__main__':

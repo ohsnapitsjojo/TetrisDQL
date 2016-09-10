@@ -105,7 +105,7 @@ class Agent:
             
     def saveParams(self, string):
         print("Saving Model...")
-        np.savez(string, *lasagne.layers.get_all_param_values(self.network))
+        np.savez(string, lasagne.layers.get_all_param_values(self.network))
         print("Saving Done!")
 
 def main():
