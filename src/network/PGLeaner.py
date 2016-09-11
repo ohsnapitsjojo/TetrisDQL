@@ -93,13 +93,10 @@ class PGLearner:
                     
                     shuf = np.arange(x_s.shape[0])
                     np.random.shuffle(shuf)
-                    print np.floor_divide(x_s.shape[0], batch_size)
+                    
                     for k in range(np.floor_divide(x_s.shape[0], batch_size)):
                         it1 = k*batch_size
                         it2 = (k+1)*batch_size
-                        print k
-                        print a_s[it1:it2]
-                        print rd_s[it1:it2]
                         self.train_fn(x_s[shuf[it1:it2],:,:,:],
                                       a_s[it1:it2],rd_s[it1:it2])
                     
