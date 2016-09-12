@@ -14,10 +14,10 @@ class Preprocessor():
 
     def __init__(self):
         self.sS = screenSegmentation()
-        self.game, self.playField, self.holdField, self.nextField, self.scoreField = self.sS.getCurrentState()
+        self.game, self.playField, self.holdField, self.nextField, self.scoreField, self.lineField = self.sS.getCurrentState()
 
     def update(self):
-        self.game, self.playField, self.holdField, self.nextField, self.scoreField = self.sS.getCurrentState()
+        self.game, self.playField, self.holdField, self.nextField, self.scoreField, self.lineField = self.sS.getCurrentState()
 
 
     def preprocessPlayField(self):
@@ -228,13 +228,13 @@ def main():
        p.update()
        p.preprocess()
        print p.getHighestLine()
-    #print p.getScore()
+    #print# p.getScore()
     #while(1):
      #   p.update()
       #  pic = p.preprocessPlayField()
        # plt.imshow(pic, interpolation='none',cmap='Greys_r')
         #plt.pause(0.1)
-        
+    pass
 #if __name__ == '__main__':
 #   main()
 
