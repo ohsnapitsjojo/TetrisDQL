@@ -43,25 +43,43 @@ class Preprocessor():
         step = 26
         pooledNF = self.holdField[x::step, y::step]
         pooledNF = pooledNF > 36
-        pooledNF = pooledNF * 254
+        pooledHF = pooledNF * 254
 
-        return pooledNF
+        return pooledHF
 
     def preprocess(self):
-        pF = self.preprocessPlayField()
-        nF = self.preprocessNextField()
-        hF = self.preprocessHoldField()
+        self.pF = self.preprocessPlayField()
+        self.nF = self.preprocessNextField()
+        self.hF = self.preprocessHoldField()
 
-        image = np.hstack((hF, np.zeros((3, 1))))
+        image = np.hstack((self.hF, np.zeros((3, 1))))
         image = np.vstack((image, np.zeros((9,5))))
-        image = np.vstack((image, nF ))
+        image = np.vstack((image, self.nF ))
         image = np.hstack((np.zeros((20,5)), image))
-        image = np.hstack((pF, image))
+        image = np.hstack((self.pF, image))
 
         return image
 
-    def getScore(self, plot='False'):
+    def getScore(self, plot=False):
         binarySF = self.scoreField
+        binarySF = binarySF > 50
+        points = [index for index, x in np.ndenumerate(binarySF) if x == 1 ]
+        if not points:
+            return 'Empty score field.'
+        _, nCluster, nPoints= dbscan(points,plot)
+        score = 0
+
+        for i in range(1, nCluster+1):
+            digit = self.getDigit(nPoints[i-1])
+            if digit == -1:
+                return -1
+                
+            score = score + digit*math.pow(10, nCluster-i)
+            
+        return score
+
+    def getLinesCleared(self, plot=False):
+        binarySF = self.lineField
         binarySF = binarySF > 50
         points = [index for index, x in np.ndenumerate(binarySF) if x == 1 ]
         if not points:
@@ -101,8 +119,10 @@ class Preprocessor():
             return 9
         
         return -1
+        
+        
     
-    def readScoreRT(self):
+    def readScoreRealTime(self):
         nScore = 0
         oScore = 0   
         while(1):    
@@ -127,6 +147,17 @@ class Preprocessor():
     
     def highScore():
         pass
+    
+    def getHighestLine(self):
+        tmp = np.apply_along_axis( sum, axis=1, arr=self.pF )
+        i = 0   
+
+        for x in reversed(tmp):
+            if x > 0:
+                i += 1
+            else:
+                break
+        return i
             
 def dbscan(points, plot=False):
     if not points:
@@ -184,19 +215,26 @@ def dbscan(points, plot=False):
     sortIdx = np.argsort(center)
     
     scoreNPoints = [scoreNPoints[sortIdx[i]] for i in range(n_clusters_)]
-    #print scoreNPoints
     return labels, n_clusters_, scoreNPoints
     
 def main():
-    #plt.ion()
+    plt.ion()
     #score = np.loadtxt('316.txt')
     #score = score > 50
     #points = [index for index, x in np.ndenumerate(score) if x == 1 ]
-    #p = Preprocessor()
+    p = Preprocessor()
+    pic = p.preprocessPlayField()
+    while(1):          
+       p.update()
+       p.preprocess()
+       print p.getHighestLine()
     #print p.getScore()
-    #plt.imshow(score, interpolation='none',cmap='Greys_r')
-    pass
-    
+    #while(1):
+     #   p.update()
+      #  pic = p.preprocessPlayField()
+       # plt.imshow(pic, interpolation='none',cmap='Greys_r')
+        #plt.pause(0.1)
+        
 #if __name__ == '__main__':
 #   main()
 
