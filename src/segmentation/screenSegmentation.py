@@ -41,8 +41,9 @@ class screenSegmentation():
         holdfield = self.section(92, 110, 92+120, 110+78, game)
         nextfield = self.section(603, 109, 603+124, 109+214, game)
         scorefield = self.section(94, 390, 94+115, 390+27, game)
+        linefield = self.section(94, 508, 209, 508+27, game)
         
-        return game, playfield, holdfield, nextfield, scorefield
+        return game, playfield, holdfield, nextfield, scorefield, linefield
  
     def screenGrab(self):
         im = ImageGrab.grab().convert('L')
@@ -74,7 +75,7 @@ class screenSegmentation():
 def main():
     segmentation = screenSegmentation()
     game, playfield, holdfield, nextfield, scorefield = segmentation.getCurrentState()  
-    plt.imshow(holdfield, cmap='Greys_r')
+    plt.imshow(game, cmap='Greys_r')
     plt.show()
 
  

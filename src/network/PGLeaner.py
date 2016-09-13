@@ -14,6 +14,11 @@ from preprocessor import Preprocessor
 from inputSimulator import InputSimulator
 from agent import Agent
 
+import math
+
+def sigmoid(x):
+  return 1 / (1 + math.exp(-x))
+
 class PGLearner:
     
     def __init__(self, gamma, learning_rate, rho, epsilon, load_network):
@@ -56,6 +61,7 @@ class PGLearner:
     def train(self, epochs, batch_size):
         print("Start Training the PGLearner.")
         old_score = 0.0
+        old_cleared = 0
         x_n, r_n, a_n = [],[],[]
         self.iS.clickPlay()
         time.sleep(3.5)
@@ -66,41 +72,52 @@ class PGLearner:
                 x, action = self.agent.oneAction()
                 self.agent.updateInput()
                 score = self.agent.pP.getScore()
+                h = self.agent.pP.getHighestLine()
+                cleared = self.agent.pP.getLinesCleared()
                 
                 if score == -1:
-                    r_n.append(0)
+                    s = 0
                 else:
-                    r_n.append((score-old_score)/100)
+                    s = ((score-old_score)/100)
+                    
+                if cleared == -1:
+                    c = 0
+                else:
+                    c = (cleared-old_cleared)
+        
+                reward = s - h/20 + c/2
             
                 x_n.append(x)
                 a_n.append(action)
+                r_n.append(reward)
                 
                 old_score = score
+                old_cleared = cleared
             
                 if self.agent.pP.isMenuOpen():
-                    
+                    t = time.time() - start_time
                     x_s = np.vstack(x_n)
                     r_s = np.vstack(r_n)
                     a_s = np.vstack(a_n)
                     
                     x_n, r_n, a_n = [],[],[]
-                    r_s[-1] = -4
+                    r_s[-1] = 0
                     r_sum = np.sum(r_s)
                     rd_s = self.discount_rewards(r_s)
 
                     a_s = a_s.reshape(a_s.shape[0],)
                     rd_s = rd_s.reshape(rd_s.shape[0],)
                     
-                    shuf = np.arange(x_s.shape[0])
-                    np.random.shuffle(shuf)
+                    #shuf = np.arange(x_s.shape[0])
+                    #np.random.shuffle(shuf)
                     
-                    for k in range(np.floor_divide(x_s.shape[0], batch_size)):
-                        it1 = k*batch_size
-                        it2 = (k+1)*batch_size
-                        self.train_fn(x_s[shuf[it1:it2],:,:,:],
-                                      a_s[it1:it2],rd_s[it1:it2])
-                    
-                    t = time.time() - start_time
+                    #for k in range(np.floor_divide(x_s.shape[0], batch_size)):
+                     #   it1 = k*batch_size
+                      #  it2 = (k+1)*batch_size
+                       # self.train_fn(x_s[shuf[it1:it2],:,:,:],
+                        #              a_s[it1:it2],rd_s[it1:it2])
+                    self.train_fn(x_s,a_s,rd_s)
+
                     print("Game {} of {} took {:.3f}s and reached a Score of {}".format(
                     episode + 1, epochs, t, r_sum))
                     
@@ -144,8 +161,8 @@ class PGLearner:
             
             
 def main():
-    PGL = PGLearner(0.9, 0.0001, 0.9, 1e-6, False)
-    PGL.train(5,5)
+    PGL = PGLearner(0.99, 0.01, 0.9, 1e-6, False)
+    PGL.train(200,5)
     
 if __name__ == '__main__':
     main()

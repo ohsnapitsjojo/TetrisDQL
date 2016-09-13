@@ -129,7 +129,7 @@ class Preprocessor():
             self.update()
             nScore = self.getScore()
             if oScore != nScore:
-                #print nScore
+                print nScore
                 pass
             oScore = nScore
             
@@ -223,11 +223,12 @@ def main():
     #score = score > 50
     #points = [index for index, x in np.ndenumerate(score) if x == 1 ]
     p = Preprocessor()
-    pic = p.preprocessPlayField()
-    while(1):          
-       p.update()
-       p.preprocess()
-       print p.getHighestLine()
+    p.readScoreRealTime()
+    #pic = p.preprocessPlayField()
+    #while(1):          
+    #   p.update()
+    #   p.preprocess()
+    #   print p.getHighestLine()
     #print# p.getScore()
     #while(1):
      #   p.update()
