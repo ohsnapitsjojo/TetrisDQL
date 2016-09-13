@@ -218,29 +218,7 @@ def dbscan(points, plot=False):
     return labels, n_clusters_, scoreNPoints
     
 def main():
-    plt.ion()
-    #score = np.loadtxt('316.txt')
-    #score = score > 50
-    #points = [index for index, x in np.ndenumerate(score) if x == 1 ]
-    p = Preprocessor()
-    p.readScoreRealTime()
-    #pic = p.preprocessPlayField()
-    #while(1):          
-    #   p.update()
-    #   p.preprocess()
-    #   print p.getHighestLine()
-    #print# p.getScore()
-    #while(1):
-     #   p.update()
-      #  pic = p.preprocessPlayField()
-       # plt.imshow(pic, interpolation='none',cmap='Greys_r')
-        #plt.pause(0.1)
     pass
-#if __name__ == '__main__':
-#   main()
-
-main()
-
 
 
 

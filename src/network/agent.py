@@ -33,7 +33,7 @@ class Agent:
         self.pred_fn = theano.function([self.input_var], self.prediction)
         print("Compiling done")
         
-    def performAction(self, probabilities, random):
+    def performAction(self, probabilities, random, epsilon):
         # 0: None
         # 1: Up
         # 2: Left
@@ -43,9 +43,12 @@ class Agent:
         # 6: Hold
         action = -1
         if random:
-            probabilities = np.asarray(probabilities)
-            csprob_n = np.cumsum(probabilities)
-            action = (csprob_n > np.random.rand()).argmax()
+            if np.random.rand() < epsilon:
+                probabilities = np.asarray(probabilities)
+                csprob_n = np.cumsum(probabilities)
+                action = (csprob_n > np.random.rand()).argmax()
+            else:
+                action = np.random.randint(6)
         else:
             action = np.argmax(probabilities)
         
@@ -88,12 +91,12 @@ class Agent:
         self.updateInput()
         for i in range(200):
             self.updateInput()
-            self.performAction(self.pred_fn(self.x), False)   
+            self.performAction(self.pred_fn(self.x), False, 0.5)   
             
-    def oneAction(self):
+    def oneAction(self, epsilon):
         self.updateInput()
         probabilities = self.pred_fn(self.x)
-        action = self.performAction(probabilities, True)
+        action = self.performAction(probabilities, True, epsilon)
         return self.x, action 
             
     def loadParams(self):

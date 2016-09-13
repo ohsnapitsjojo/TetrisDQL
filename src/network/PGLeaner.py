@@ -60,16 +60,19 @@ class PGLearner:
         
     def train(self, epochs, batch_size):
         print("Start Training the PGLearner.")
-        old_score = 0.0
-        old_cleared = 0
+
         x_n, r_n, a_n = [],[],[]
         self.iS.clickPlay()
         time.sleep(3.5)
         self.agent.updateInput()
         for episode in range(epochs):
             start_time = time.time()
+            eps = 0.5 + 0.5*(episode/(0.9*epochs))
+
+            old_score = 0.0
+            old_cleared = 0
             while True:                
-                x, action = self.agent.oneAction()
+                x, action = self.agent.oneAction(eps)
                 self.agent.updateInput()
                 score = self.agent.pP.getScore()
                 h = self.agent.pP.getHighestLine()
@@ -90,9 +93,6 @@ class PGLearner:
                 x_n.append(x)
                 a_n.append(action)
                 r_n.append(reward)
-                
-                old_score = score
-                old_cleared = cleared
             
                 if self.agent.pP.isMenuOpen():
                     t = time.time() - start_time
@@ -118,11 +118,11 @@ class PGLearner:
                         #              a_s[it1:it2],rd_s[it1:it2])
                     self.train_fn(x_s,a_s,rd_s)
 
-                    print("Game {} of {} took {:.3f}s and reached a Score of {}".format(
+                    print("Game {} of {} took {:.3f}s and reached a score of {}".format(
                     episode + 1, epochs, t, r_sum))
                     
                     self.agent.resetInput()
-                    self.log(t, r_sum)
+                    self.log(t, r_sum, old_score, old_cleared)
                     
                     time.sleep(2)
                     
@@ -138,6 +138,9 @@ class PGLearner:
                         time.sleep(3.5)
                         self.agent.updateInput()
                         break
+                    
+                old_score = score
+                old_cleared = cleared
                     
         print("Saving Model to File...")
         self.agent.saveParams('trained_model1.npz')
@@ -155,14 +158,14 @@ class PGLearner:
         discounted_r /= np.std(discounted_r)
         return discounted_r
         
-    def log(self, time, reward):
+    def log(self, time, reward, score, cleared):
         with open("log_file.txt", "a") as myfile:
-            myfile.writelines(str(time) + ', ' + str(reward) + '\n')
+            myfile.writelines(str(time) + ', ' + str(reward) + ', ' + str(score) + ', ' + str(cleared) +'\n')
             
             
 def main():
     PGL = PGLearner(0.99, 0.01, 0.9, 1e-6, False)
-    PGL.train(200,5)
+    PGL.train(50,5)
     
 if __name__ == '__main__':
     main()
