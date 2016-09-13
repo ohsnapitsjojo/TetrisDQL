@@ -71,11 +71,12 @@ class PGLearner:
 
             old_score = 0.0
             old_cleared = 0
+            old_height = 0
             while True:                
                 x, action = self.agent.oneAction(eps)
                 self.agent.updateInput()
                 score = self.agent.pP.getScore()
-                h = self.agent.pP.getHighestLine()
+                height = self.agent.pP.getHighestLine()
                 cleared = self.agent.pP.getLinesCleared()
                 
                 if score == -1:
@@ -87,8 +88,13 @@ class PGLearner:
                     c = 0
                 else:
                     c = (cleared-old_cleared)
+                    
+                h = (height-old_height)
         
-                reward = s - h/20 + c/2
+                if -h != c:
+                    h = 0
+        
+                reward = s - h/2 # + c/2
             
                 x_n.append(x)
                 a_n.append(action)
@@ -141,6 +147,7 @@ class PGLearner:
                     
                 old_score = score
                 old_cleared = cleared
+                old_height = height
                     
         print("Saving Model to File...")
         self.agent.saveParams('trained_model1.npz')
@@ -165,7 +172,7 @@ class PGLearner:
             
 def main():
     PGL = PGLearner(0.99, 0.01, 0.9, 1e-6, False)
-    PGL.train(50,5)
+    PGL.train(100,5)
     
 if __name__ == '__main__':
     main()
