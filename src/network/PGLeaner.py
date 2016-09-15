@@ -65,13 +65,16 @@ class PGLearner:
         self.iS.clickPlay()
         time.sleep(3.5)
         self.agent.updateInput()
+        rd_s = np.empty((0,1))
+        
         for episode in range(epochs):
             start_time = time.time()
-            eps = 0.5 + 0.5*(episode/(0.9*epochs))
+            eps = 1#0.5 + 0.5*(episode/(0.9*epochs))
 
             old_score = 0.0
             old_cleared = 0
             old_height = 0
+            r_sum = 0
             while True:                
                 x, action = self.agent.oneAction(eps)
                 self.agent.updateInput()
@@ -91,7 +94,7 @@ class PGLearner:
                     
                 h = (height-old_height)
         
-                if -h != c:
+                if (-h != c and h < 0) or height < 4:
                     h = 0
         
                 reward = s - h/2 # + c/2
@@ -100,37 +103,42 @@ class PGLearner:
                 a_n.append(action)
                 r_n.append(reward)
             
+                r_sum += reward    
+            
                 if self.agent.pP.isMenuOpen():
                     t = time.time() - start_time
-                    x_s = np.vstack(x_n)
-                    r_s = np.vstack(r_n)
-                    a_s = np.vstack(a_n)
                     
-                    x_n, r_n, a_n = [],[],[]
-                    r_s[-1] = 0
-                    r_sum = np.sum(r_s)
-                    rd_s = self.discount_rewards(r_s)
-
-                    a_s = a_s.reshape(a_s.shape[0],)
-                    rd_s = rd_s.reshape(rd_s.shape[0],)
-                    
-                    #shuf = np.arange(x_s.shape[0])
-                    #np.random.shuffle(shuf)
-                    
-                    #for k in range(np.floor_divide(x_s.shape[0], batch_size)):
-                     #   it1 = k*batch_size
-                      #  it2 = (k+1)*batch_size
-                       # self.train_fn(x_s[shuf[it1:it2],:,:,:],
-                        #              a_s[it1:it2],rd_s[it1:it2])
-                    self.train_fn(x_s,a_s,rd_s)
-
                     print("Game {} of {} took {:.3f}s and reached a score of {}".format(
-                    episode + 1, epochs, t, r_sum))
-                    
-                    self.agent.resetInput()
+                            episode + 1, epochs, t, r_sum))
                     self.log(t, r_sum, old_score, old_cleared)
                     
-                    time.sleep(2)
+                    rd_tmp = self.discount_rewards(np.vstack(r_n))
+                    rd_s = np.concatenate((rd_s, rd_tmp))
+                    
+                    r_n = []
+                    
+                    if np.mod(episode + 1, 5) == 0:
+                        x_s = np.vstack(x_n)
+                        a_s = np.vstack(a_n)
+                    
+                        x_n, a_n = [],[]
+                    
+                        a_s = a_s.reshape(a_s.shape[0],)
+                        rd_s = rd_s.reshape(rd_s.shape[0],)
+                    
+                        shuf = np.arange(x_s.shape[0])
+                        np.random.shuffle(shuf)
+                    
+                        for k in range(np.floor_divide(x_s.shape[0], batch_size)):
+                            it1 = k*batch_size
+                            it2 = (k+1)*batch_size
+                            self.train_fn(x_s[shuf[it1:it2],:,:,:],
+                                          a_s[it1:it2],rd_s[it1:it2])
+                            
+                        rd_s = np.empty((0,1))
+                    
+                    self.agent.resetInput()                  
+                    time.sleep(0.5)
                     
                     if self.agent.pP.tryAgain():
                         self.iS.clickTryAgain()
@@ -172,7 +180,7 @@ class PGLearner:
             
 def main():
     PGL = PGLearner(0.99, 0.01, 0.9, 1e-6, False)
-    PGL.train(100,5)
+    PGL.train(100,30)
     
 if __name__ == '__main__':
     main()
