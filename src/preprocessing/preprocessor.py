@@ -159,6 +159,15 @@ class Preprocessor():
                 break
         return i
             
+    def getNBlocksInPlayField(self):
+        tmp = np.apply_along_axis( sum, axis=1, arr=self.pF )
+        nBlock = sum(tmp)/254 - 4
+    
+        if nBlock < 0:
+            return 0
+                     
+        return nBlock
+    
 def dbscan(points, plot=False):
     if not points:
         return 0, 0, 0
@@ -218,7 +227,15 @@ def dbscan(points, plot=False):
     return labels, n_clusters_, scoreNPoints
     
 def main():
-    pass
+    p = Preprocessor()
+    
+    while (1):
+        p.update()
+        p.preprocess()
+        print p.getNBlocksInPlayField()
+    
+    
+main()
 
 
 
