@@ -25,7 +25,7 @@ class PGLearner:
         self.gamma = gamma
         self.learning_rate = learning_rate
         self.rho = rho
-        self.eps = epsilon
+        self.epsilon = epsilon
         
         self.iS = InputSimulator()
         self.pP = Preprocessor()
@@ -45,10 +45,19 @@ class PGLearner:
         params = lasagne.layers.get_all_params(self.agent.network, 
                                                     trainable=True)
         
-        updates = lasagne.updates.rmsprop(loss, params, 
+#==============================================================================
+#         updates = lasagne.updates.rmsprop(loss, params, 
+#                                           learning_rate = self.learning_rate,
+#                                           rho = self.rho,
+#                                           epsilon = self.epsilon)
+#==============================================================================
+        
+        updates = lasagne.updates.adadelta(loss, params, 
                                           learning_rate = self.learning_rate,
                                           rho = self.rho,
-                                          epsilon = self.eps)
+                                          epsilon = self.epsilon)
+
+        #updates = lasagne.updates.sgd(loss,params,learning_rate = self.learning_rate)
         self.prediction_fn = self.agent.pred_fn
         
         print("Compiling Training Function...")
@@ -179,8 +188,23 @@ class PGLearner:
             
             
 def main():
-    PGL = PGLearner(0.99, 0.01, 0.9, 1e-6, False)
+    PGL = PGLearner(0.99, 0.001, 0.9, 1e-6, False)
     PGL.train(100,30)
+#==============================================================================
+#     x = np.zeros((1,4,20,20),np.int8)
+#     r = np.array([1])
+#     a = np.array([3])
+#     a = a.reshape(a.shape[0],)
+#     r = r.reshape(r.shape[0],)
+#     r.astype(np.float32)
+#     print 'eta: ',PGL.learning_rate
+#     print 'rho: ',PGL.rho
+#     print 'eps: ',PGL.epsilon
+#     print PGL.prediction_fn(x)
+#     PGL.train_fn(x,a,r)
+#     print PGL.prediction_fn(x)
+#==============================================================================
+    
     
 if __name__ == '__main__':
     main()

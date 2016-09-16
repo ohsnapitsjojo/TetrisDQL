@@ -227,15 +227,7 @@ def dbscan(points, plot=False):
     return labels, n_clusters_, scoreNPoints
     
 def main():
-    p = Preprocessor()
-    
-    while (1):
-        p.update()
-        p.preprocess()
-        print p.getNBlocksInPlayField()
-    
-    
-main()
+    pass
 
 
 
