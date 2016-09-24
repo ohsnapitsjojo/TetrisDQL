@@ -105,7 +105,7 @@ class PGLearner:
                 conc = 0.0
                 
                 if n > 0:
-                    conc = float(n_blocks)/height*9
+                    conc = float(n_blocks)/(height*9)
                     conc = 2*(conc-0.33)
         
                 c = 2.5*c
@@ -137,9 +137,7 @@ class PGLearner:
                         a_s = np.vstack(a_n)
                     
                         a_n = []
-                    
-                        print self.prediction_fn(x_s)                    
-                        print rd_s
+
                         a_s = a_s.reshape(a_s.shape[0],)
                         rd_s = rd_s.reshape(rd_s.shape[0],)
                     
