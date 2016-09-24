@@ -30,7 +30,7 @@ class Agent:
             self.loadParams()
         
         print("Compiling network")
-        self.pred_fn = theano.function([self.input_var], self.prediction)
+        self.pred_fn = theano.function([self.input_var], self.prediction, allow_input_downcast=True)
         print("Compiling done")
         
     def performAction(self, probabilities, random, epsilon):

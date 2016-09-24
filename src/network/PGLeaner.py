@@ -45,19 +45,11 @@ class PGLearner:
         params = lasagne.layers.get_all_params(self.agent.network, 
                                                     trainable=True)
         
-#==============================================================================
-#         updates = lasagne.updates.rmsprop(loss, params, 
-#                                           learning_rate = self.learning_rate,
-#                                           rho = self.rho,
-#                                           epsilon = self.epsilon)
-#==============================================================================
-        
         updates = lasagne.updates.adadelta(loss, params, 
                                           learning_rate = self.learning_rate,
                                           rho = self.rho,
                                           epsilon = self.epsilon)
 
-        #updates = lasagne.updates.sgd(loss,params,learning_rate = self.learning_rate)
         self.prediction_fn = self.agent.pred_fn
         
         print("Compiling Training Function...")
@@ -70,11 +62,12 @@ class PGLearner:
     def train(self, epochs, batch_size):
         print("Start Training the PGLearner.")
 
-        x_n, r_n, a_n = [],[],[]
+        r_n, a_n = [],[]
         self.iS.clickPlay()
         time.sleep(3.5)
         self.agent.updateInput()
         rd_s = np.empty((0,1))
+        x_n = np.empty((0,4,20,20))
         
         for episode in range(epochs):
             start_time = time.time()
@@ -83,6 +76,7 @@ class PGLearner:
             old_score = 0.0
             old_cleared = 0
             old_height = 0
+            n_blocks_old = 0
             r_sum = 0
             while True:                
                 x, action = self.agent.oneAction(eps)
@@ -90,6 +84,7 @@ class PGLearner:
                 score = self.agent.pP.getScore()
                 height = self.agent.pP.getHighestLine()
                 cleared = self.agent.pP.getLinesCleared()
+                n_blocks = self.agent.pP.getNBlocksInPlayField()
                 
                 if score == -1:
                     s = 0
@@ -102,13 +97,22 @@ class PGLearner:
                     c = (cleared-old_cleared)
                     
                 h = (height-old_height)
+                n = (n_blocks-n_blocks_old)
         
                 if (-h != c and h < 0) or height < 4:
                     h = 0
+                    
+                conc = 0.0
+                
+                if n > 0:
+                    conc = float(n_blocks)/height*9
+                    conc = 2*(conc-0.33)
         
-                reward = s - h/2 # + c/2
+                c = 2.5*c
+                s = 0.5*s
+                reward = c + conc + s
             
-                x_n.append(x)
+                x_n = np.append(x_n, x, 0)
                 a_n.append(action)
                 r_n.append(reward)
             
@@ -116,7 +120,9 @@ class PGLearner:
             
                 if self.agent.pP.isMenuOpen():
                     t = time.time() - start_time
-                    
+                    r_n[-1] = -0.5
+                    r_sum -=c
+                    r_sum -= 0.5
                     print("Game {} of {} took {:.3f}s and reached a score of {}".format(
                             episode + 1, epochs, t, r_sum))
                     self.log(t, r_sum, old_score, old_cleared)
@@ -126,12 +132,14 @@ class PGLearner:
                     
                     r_n = []
                     
-                    if np.mod(episode + 1, 5) == 0:
-                        x_s = np.vstack(x_n)
+                    if np.mod(episode + 1, 1) == 0:
+                        x_s = x_n
                         a_s = np.vstack(a_n)
                     
-                        x_n, a_n = [],[]
+                        a_n = []
                     
+                        print self.prediction_fn(x_s)                    
+                        print rd_s
                         a_s = a_s.reshape(a_s.shape[0],)
                         rd_s = rd_s.reshape(rd_s.shape[0],)
                     
@@ -145,6 +153,7 @@ class PGLearner:
                                           a_s[it1:it2],rd_s[it1:it2])
                             
                         rd_s = np.empty((0,1))
+                        x_n = np.empty((0,4,20,20))
                     
                     self.agent.resetInput()                  
                     time.sleep(0.5)
@@ -171,15 +180,12 @@ class PGLearner:
         print("End Training Program!")
             
     def discount_rewards(self, r):
-        discounted_r = np.zeros_like(r)
+        discounted_r = np.zeros_like(r, np.float32)
         running_add = 0.0
         for t in reversed(xrange(0, r.size)):
             running_add = running_add * self.gamma + r[t]
             discounted_r[t] = running_add
             
-        #normalize
-        discounted_r -= np.mean(discounted_r)
-        discounted_r /= np.std(discounted_r)
         return discounted_r
         
     def log(self, time, reward, score, cleared):
